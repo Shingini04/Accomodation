@@ -12,7 +12,6 @@ export const GET_ACCOMMODATIONS = gql`
       arrivalDate
       departureDate
       numberOfPeople
-      accommodationType
       amount
       paid
       orderId
@@ -22,6 +21,7 @@ export const GET_ACCOMMODATIONS = gql`
       createdAt
       user {
         id
+        shaastraId
         name
         email
       }
@@ -52,7 +52,6 @@ export const GET_ACCOMMODATION = gql`
       arrivalDate
       departureDate
       numberOfPeople
-      accommodationType
       accommodationDates
       amount
       paid
@@ -78,6 +77,36 @@ export const GET_ACCOMMODATION = gql`
         allottedBy
         notes
         createdAt
+      }
+    }
+  }
+`;
+
+export const GET_USER_ACCOMMODATIONS = gql`
+  query GetUserAccommodations($userId: String!) {
+    getUserAccommodations(userId: $userId) {
+      accoId
+      name
+      email
+      mobile
+      gender
+      organization
+      arrivalDate
+      departureDate
+      numberOfPeople
+      amount
+      paid
+      orderId
+      paymentId
+      checkInAt
+      checkOutAt
+      createdAt
+      allotment {
+        id
+        room {
+          roomNumber
+          hostelName
+        }
       }
     }
   }
@@ -202,6 +231,12 @@ export const EXPORT_ACCOMMODATIONS_CSV = gql`
   }
 `;
 
+export const EXPORT_ACCOMMODATIONS_CSV_ADMIN = gql`
+  query ExportAccommodationsCSVAdmin {
+    exportAccommodationsCSVAdmin
+  }
+`;
+
 export const EXPORT_ROOMS_CSV = gql`
   query ExportRoomsCSV {
     exportRoomsCSV
@@ -211,5 +246,17 @@ export const EXPORT_ROOMS_CSV = gql`
 export const EXPORT_PAYMENTS_CSV = gql`
   query ExportPaymentsCSV {
     exportPaymentsCSV
+  }
+`;
+
+export const EXPORT_SUPPORT_TICKETS_CSV = gql`
+  query ExportSupportTicketsCSV {
+    exportSupportTicketsCSV
+  }
+`;
+
+export const GENERATE_RECEIPT = gql`
+  query GenerateReceipt($accommodationId: String!) {
+    generateReceipt(accommodationId: $accommodationId)
   }
 `;

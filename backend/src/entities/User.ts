@@ -21,6 +21,9 @@ export class User {
   @Field()
   email: string;
 
+  @Column({ nullable: true })
+  password?: string;
+
   @Column()
   @Field()
   mobile: string;

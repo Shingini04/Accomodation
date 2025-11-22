@@ -1,4 +1,4 @@
-import { Resolver, Query } from "type-graphql";
+import { Resolver, Query, Ctx } from "type-graphql";
 import { AppDataSource } from "../data-source";
 import { Accommodation } from "../entities/Accommodation";
 import { Room } from "../entities/Room";
@@ -10,26 +10,43 @@ import { Not, IsNull } from "typeorm";
 @Resolver()
 export class DashboardResolver {
   @Query(() => DashboardStats)
-  async getDashboardStats(): Promise<DashboardStats> {
+  async getDashboardStats(@Ctx() ctx: any): Promise<DashboardStats> {
+    if (!ctx?.admin) {
+      throw new Error('Unauthorized: admin access required');
+    }
     const accommodationRepo = AppDataSource.getRepository(Accommodation);
     const roomRepo = AppDataSource.getRepository(Room);
     const paymentRepo = AppDataSource.getRepository(PaymentTransaction);
     const ticketRepo = AppDataSource.getRepository(SupportTicket);
 
-    const totalAccommodations = await accommodationRepo.count();
-    const paidAccommodations = await accommodationRepo.count({ where: { paid: true } });
-    const pendingAccommodations = await accommodationRepo.count({ where: { paid: false } });
+    const allAccommodations = await accommodationRepo.find();
+    const totalAccommodations = allAccommodations.length;
+    const paidAccommodations = allAccommodations.filter(a => a.paid).length;
+    const pendingAccommodations = allAccommodations.filter(a => !a.paid).length;
 
-    const maleParticipants = await accommodationRepo.count({ where: { gender: "Male" } });
-    const femaleParticipants = await accommodationRepo.count({ where: { gender: "Female" } });
-    const otherGenderParticipants = await accommodationRepo.count({ where: { gender: "Other" } });
+    // Aggregate gender counts including guestGenders (bulk bookings)
+    let maleParticipants = 0;
+    let femaleParticipants = 0;
+    let otherGenderParticipants = 0;
 
-    const checkedIn = await accommodationRepo.count({
-      where: { checkInAt: { $ne: null } as any },
+    allAccommodations.forEach(acc => {
+      // If guestGenders is present and non-empty, treat it as the canonical list of all guests
+      if (Array.isArray(acc.guestGenders) && acc.guestGenders.length > 0) {
+        acc.guestGenders.forEach(g => {
+          if (g === "Male") maleParticipants += 1;
+          else if (g === "Female") femaleParticipants += 1;
+          else otherGenderParticipants += 1;
+        });
+      } else {
+        const primary = acc.gender;
+        if (primary === "Male") maleParticipants += 1;
+        else if (primary === "Female") femaleParticipants += 1;
+        else otherGenderParticipants += 1;
+      }
     });
-    const checkedOut = await accommodationRepo.count({
-      where: { checkOutAt: { $ne: null } as any },
-    });
+
+    const checkedIn = await accommodationRepo.count({ where: { checkInAt: Not(IsNull()) } });
+    const checkedOut = await accommodationRepo.count({ where: { checkOutAt: Not(IsNull()) } });
 
     const allRooms = await roomRepo.find();
     const totalRooms = allRooms.length;
@@ -38,7 +55,7 @@ export class DashboardResolver {
     const totalOccupied = allRooms.reduce((sum, room) => sum + room.occupied, 0);
     const occupancyRate = totalCapacity > 0 ? (totalOccupied / totalCapacity) * 100 : 0;
 
-    const successfulPayments = await paymentRepo.find({ where: { status: "success" } });
+  const successfulPayments = await paymentRepo.find({ where: { status: "success" } });
     const totalRevenue = successfulPayments.reduce((sum, payment) => sum + payment.amount, 0);
 
     const openTickets = await ticketRepo.count({ where: { status: "open" } });

@@ -68,10 +68,28 @@ export const CREATE_ROOM = gql`
   }
 `;
 
+export const LOGIN = gql`
+  mutation Login($shaastraId: String!, $password: String!) {
+    login(shaastraId: $shaastraId, password: $password) {
+      token
+      user {
+        id
+        shaastraId
+        name
+        email
+        mobile
+      }
+    }
+  }
+`;
+
 export const CREATE_SUPPORT_TICKET = gql`
   mutation CreateSupportTicket($data: CreateSupportTicketInput!) {
     createSupportTicket(data: $data) {
       id
+      userId
+      name
+      email
       category
       message
       status

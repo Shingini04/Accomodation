@@ -1,6 +1,6 @@
 import { useState, FormEvent } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
-import { GET_ROOMS, GET_AVAILABLE_ROOMS } from '../graphql/queries';
+import { GET_ROOMS } from '../graphql/queries';
 import { CREATE_ROOM } from '../graphql/mutations';
 import { Room } from '../types';
 import { Home, Plus, Users } from 'lucide-react';

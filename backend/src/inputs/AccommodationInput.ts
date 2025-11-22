@@ -1,5 +1,5 @@
 import { InputType, Field, Int, Float } from "type-graphql";
-import { IsEmail, IsNotEmpty, MinLength } from "class-validator";
+import { IsEmail, IsNotEmpty, MinLength, IsInt, Min } from "class-validator";
 
 @InputType()
 export class CreateAccommodationInput {
@@ -53,11 +53,12 @@ export class CreateAccommodationInput {
   departureDate: string;
 
   @Field(() => Int)
+  @IsInt()
+  @Min(1)
   numberOfPeople: number;
 
-  @Field()
-  @IsNotEmpty()
-  accommodationType: string;
+  @Field(() => [String], { nullable: true })
+  guestGenders?: string[];
 
   @Field()
   @IsNotEmpty()
@@ -68,6 +69,9 @@ export class CreateAccommodationInput {
 
   @Field()
   termsAndConditions: boolean;
+
+  @Field({ nullable: true })
+  eventName?: string;
 }
 
 @InputType()

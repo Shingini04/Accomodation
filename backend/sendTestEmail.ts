@@ -4,7 +4,7 @@ dotenv.config();
 import { sendEmail } from './src/services/emailService';
 
 async function main() {
-  const to = process.env.TEST_EMAIL_TO || 'your_email@example.com';
+  const to = process.env.TEST_EMAIL_TO || 'lahirishingini@gmail.com';
   try {
     await sendEmail({
       to,

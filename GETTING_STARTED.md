@@ -1,6 +1,6 @@
 # Getting Started - Accommodation Portal
 
-Quick start guide to get the Accommodation Portal running on your local machine.
+Quick start guide with **separated frontend and backend folders**.
 
 ## What You've Got
 
@@ -11,9 +11,9 @@ A complete full-stack accommodation management system with:
 - **Tech**: Node.js, Express, Apollo Server, TypeGraphQL, TypeORM, PostgreSQL
 - **Features**: GraphQL API, Razorpay payments, SendGrid emails, room management
 
-### Frontend (React + TypeScript)
-- **Location**: `./src/` directory
-- **Tech**: React, TypeScript, Apollo Client, Tailwind CSS, React Router
+### Frontend (React + TypeScript + Vite)
+- **Location**: `./frontend/` directory  
+- **Tech**: React, TypeScript, Apollo Client, Tailwind CSS, Vite
 - **Features**: User registration, admin dashboard, support system, data export
 
 ## Prerequisites
@@ -28,14 +28,16 @@ Before starting, install:
 
 ### 1. Install Dependencies
 
-**Frontend:**
-```bash
-npm install
-```
-
 **Backend:**
 ```bash
 cd backend
+npm install
+cd ..
+```
+
+**Frontend:**
+```bash
+cd frontend
 npm install
 cd ..
 ```
@@ -74,20 +76,14 @@ RAZORPAY_SECRET=your_secret_key
 SENDGRID_API_KEY=SG.xxxxxxxxxx
 SENDGRID_FROM_EMAIL=noreply@shaastra.org
 
+ADMIN_PASSWORD=shaastra2025
+JWT_SECRET=your_jwt_secret_key
+
 FRONTEND_URL=http://localhost:5173
 ```
 
-**Frontend** (`.env`):
-```bash
-cd ..
-cp .env.example .env
-```
-
-Edit `.env`:
-```env
-VITE_GRAPHQL_ENDPOINT=http://localhost:4000/graphql
-VITE_RAZORPAY_KEY_ID=rzp_test_xxxxxxxxxx
-```
+**Frontend** (`frontend/.env`):
+Already configured! It points to `http://localhost:4000/graphql`
 
 ### 4. Start the Servers
 
@@ -102,12 +98,24 @@ GraphQL Playground: http://localhost:4000/graphql
 
 **Terminal 2 - Frontend:**
 ```bash
+cd frontend
 npm run dev
 ```
 
 Frontend will start at: http://localhost:5173
 
-### 5. Test the Application
+### 5. Seed Test Data (Optional)
+
+```bash
+cd backend
+npx ts-node seedTestUser.ts
+npx ts-node seedAccommodations.ts
+npx ts-node seedRooms.ts
+npx ts-node seedSupportTickets.ts
+cd ..
+```
+
+### 6. Test the Application
 
 1. Open http://localhost:5173 in your browser
 2. Click "Register Now"
@@ -123,6 +131,7 @@ Frontend will start at: http://localhost:5173
 
 ### Admin Features
 - **Dashboard** (`/admin`) - View analytics and statistics
+  - Default password: `shaastra2025`
 - **Room Management** (`/admin/rooms`) - Create and manage rooms
 - **Data Export** (`/admin/export`) - Export CSV reports
 
@@ -138,7 +147,15 @@ Use Razorpay test cards:
 **Failed Payment:**
 - Card: 4111 1111 1111 1234
 
-## API Endpoints
+## Test Credentials
+
+For quick testing, a seeded test participant is available in the local database.
+
+- Shaastra ID: TEST12345
+- Password: Test@1234
+
+Use these credentials on the frontend login page (root /) to access the accommodation form.
+
 
 ### GraphQL Playground
 Access at: http://localhost:4000/graphql

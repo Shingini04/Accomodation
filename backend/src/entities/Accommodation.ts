@@ -63,9 +63,10 @@ export class Accommodation {
   @Field()
   numberOfPeople: number;
 
-  @Column()
-  @Field()
-  accommodationType: string;
+  // store genders for each guest (first guest is the primary applicant)
+  @Column("simple-json", { nullable: true })
+  @Field(() => [String], { nullable: true })
+  guestGenders?: string[];
 
   @Column()
   @Field()
@@ -74,6 +75,10 @@ export class Accommodation {
   @Column("float")
   @Field(() => Float)
   amount: number;
+
+  @Column({ nullable: true })
+  @Field({ nullable: true })
+  eventName?: string;
 
   @Column({ default: false })
   @Field()

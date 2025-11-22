@@ -30,6 +30,8 @@ export interface Accommodation {
   paymentId?: string;
   paymentSignature?: string;
   termsAndConditions: boolean;
+  idProofUrl?: string;
+  eventName?: string;
   allotment?: Allotment;
   checkInAt?: Date;
   checkOutAt?: Date;

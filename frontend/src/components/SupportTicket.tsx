@@ -31,6 +31,31 @@ export default function SupportTicket({ userId, userName, userEmail }: SupportTi
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    
+    // Validate category is not empty
+    if (!formData.category || formData.category.trim() === '') {
+      alert('Please select a category');
+      return;
+    }
+    
+    // Validate message is not empty or just whitespace
+    if (!formData.message || formData.message.trim().length === 0) {
+      alert('Please enter a message describing your issue');
+      return;
+    }
+    
+    // Validate minimum message length
+    if (formData.message.trim().length < 10) {
+      alert('Message must be at least 10 characters long');
+      return;
+    }
+    
+    // Validate maximum message length
+    if (formData.message.trim().length > 500) {
+      alert('Message must be less than 500 characters');
+      return;
+    }
+    
     try {
       await createTicket({
         variables: {
@@ -38,8 +63,8 @@ export default function SupportTicket({ userId, userName, userEmail }: SupportTi
             userId,
             name: userName,
             email: userEmail,
-            category: formData.category,
-            message: formData.message,
+            category: formData.category.trim(),
+            message: formData.message.trim(),
           },
         },
       });
@@ -61,7 +86,7 @@ export default function SupportTicket({ userId, userName, userEmail }: SupportTi
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Issue Category</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Issue Category *</label>
             <select
               required
               value={formData.category}
@@ -78,15 +103,18 @@ export default function SupportTicket({ userId, userName, userEmail }: SupportTi
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Describe Your Issue</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Describe Your Issue *</label>
             <textarea
               required
+              minLength={10}
+              maxLength={500}
               value={formData.message}
               onChange={(e) => setFormData({ ...formData, message: e.target.value })}
               rows={5}
-              placeholder="Please provide details about your issue..."
+              placeholder="Please provide details about your issue (minimum 10 characters, maximum 500 characters)..."
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
+            <p className="text-xs text-gray-500 mt-1">{formData.message.length}/500 characters</p>
           </div>
 
           <button

@@ -1,5 +1,4 @@
-import { Link } from 'react-router-dom';
-import { Building2, CheckCircle, Shield, Users } from 'lucide-react';
+import { Building2, CheckCircle, Shield } from 'lucide-react';
 
 export default function Home() {
   return (
@@ -51,12 +50,9 @@ export default function Home() {
           <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
             Complete your accommodation registration in minutes. Fill out the form, make payment, and receive instant confirmation via email.
           </p>
-          <Link
-            to="/accommodation"
-            className="inline-block bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-700 transition-colors"
-          >
-            Register Now
-          </Link>
+          <div className="inline-block px-8 py-4 rounded-lg font-semibold text-lg text-gray-700">
+            Registration is available after login. Please use the login page to access the accommodation form.
+          </div>
         </div>
 
         <div className="mt-16 bg-blue-50 rounded-lg p-8">

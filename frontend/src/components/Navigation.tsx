@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Users, FileText, MessageCircle, BarChart3, Settings } from 'lucide-react';
+import { Home, Users, FileText, MessageCircle, BarChart3 } from 'lucide-react';
 
 interface NavigationProps {
   isAdmin?: boolean;
@@ -8,11 +8,19 @@ interface NavigationProps {
 export default function Navigation({ isAdmin = false }: NavigationProps) {
   const location = useLocation();
 
+  const isLoggedIn = Boolean(typeof window !== 'undefined' && localStorage.getItem('authToken'));
+
   const userLinks = [
-    { to: '/', icon: Home, label: 'Home' },
-    { to: '/accommodation', icon: Users, label: 'Register' },
+    { to: '/my-accommodations', icon: Home, label: 'My Accommodations' },
     { to: '/support', icon: MessageCircle, label: 'Support' },
+    { to: '/contact-us', icon: MessageCircle, label: 'Contact Us' },
   ];
+
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('authUser');
+    window.location.href = '/';
+  };
 
   const adminLinks = [
     { to: '/admin', icon: BarChart3, label: 'Dashboard' },
@@ -38,7 +46,7 @@ export default function Navigation({ isAdmin = false }: NavigationProps) {
               const isActive = location.pathname === link.to;
               return (
                 <Link
-                  key={link.to}
+                  key={link.to + link.label}
                   to={link.to}
                   className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
                     isActive
@@ -51,6 +59,11 @@ export default function Navigation({ isAdmin = false }: NavigationProps) {
                 </Link>
               );
             })}
+            {isLoggedIn && (
+              <button onClick={handleLogout} className="flex items-center px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-100">
+                Logout
+              </button>
+            )}
           </div>
         </div>
       </div>

@@ -11,11 +11,11 @@ declare global {
 
 interface AccommodationFormProps {
   userId: string;
-  userName: string;
-  userEmail: string;
+  userName?: string;
+  userEmail?: string;
 }
 
-export default function AccommodationForm({ userId, userName, userEmail }: AccommodationFormProps) {
+export default function AccommodationForm({ userId }: AccommodationFormProps) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -29,18 +29,20 @@ export default function AccommodationForm({ userId, userName, userEmail }: Accom
     arrivalDate: '',
     departureDate: '',
     numberOfPeople: 1,
-    accommodationType: '',
+    guestGenders: [''],
+    eventName: '',
     termsAccepted: false,
   });
 
   const [showTerms, setShowTerms] = useState(false);
-  const [accommodationDates, setAccommodationDates] = useState('');
+  const [termsModalOpen, setTermsModalOpen] = useState<boolean>(true);
+  // accommodationDates is derived when submitting; no local state needed
 
   const [createAccommodation, { loading: creating }] = useMutation(CREATE_ACCOMMODATION);
   const [verifyPayment] = useMutation(VERIFY_RAZORPAY_PAYMENT);
 
   const calculateAmount = () => {
-    const basePrice = formData.accommodationType === 'AC' ? 500 : 300;
+    const basePrice = 300; // fixed price per night per person
     const nights = formData.arrivalDate && formData.departureDate
       ? Math.max(1, Math.ceil((new Date(formData.departureDate).getTime() - new Date(formData.arrivalDate).getTime()) / (1000 * 60 * 60 * 24)))
       : 1;
@@ -52,6 +54,7 @@ export default function AccommodationForm({ userId, userName, userEmail }: Accom
 
     if (!formData.termsAccepted) {
       alert('Please accept the terms and conditions');
+      setTermsModalOpen(true);
       return;
     }
 
@@ -79,9 +82,10 @@ export default function AccommodationForm({ userId, userName, userEmail }: Accom
             arrivalDate: formData.arrivalDate,
             departureDate: formData.departureDate,
             numberOfPeople: formData.numberOfPeople,
-            accommodationType: formData.accommodationType,
+            guestGenders: formData.guestGenders,
             accommodationDates: dates,
             amount,
+            eventName: formData.eventName || null,
             termsAndConditions: formData.termsAccepted,
           },
         },
@@ -112,9 +116,34 @@ export default function AccommodationForm({ userId, userName, userEmail }: Accom
             },
           });
           alert('Payment successful! You will receive a confirmation email shortly.');
-          window.location.reload();
+          // Clear form data after successful payment
+          setFormData({
+            name: '',
+            email: '',
+            mobile: '',
+            dob: '',
+            gender: '',
+            idType: '',
+            idNumber: '',
+            address: '',
+            organization: '',
+            arrivalDate: '',
+            departureDate: '',
+            numberOfPeople: 1,
+            guestGenders: [''],
+            eventName: '',
+            termsAccepted: false,
+          });
+          window.location.href = '/my-accommodations';
         } catch (error: any) {
-          alert(error.message || 'Payment verification failed');
+          alert('Payment verification failed: ' + (error.message || 'Unknown error'));
+          // Form data is preserved, user can try again
+        }
+      },
+      modal: {
+        ondismiss: function() {
+          alert('Payment was cancelled or failed. Your accommodation form has been preserved. Please try again.');
+          // Form data is preserved automatically, user can retry
         }
       },
       prefill: {
@@ -127,6 +156,10 @@ export default function AccommodationForm({ userId, userName, userEmail }: Accom
     };
 
     const razorpay = new window.Razorpay(options);
+    razorpay.on('payment.failed', function (response: any) {
+      alert('Payment Failed: ' + (response.error.description || 'Your payment was not successful. Please try again. Your accommodation form has been reopened.'));
+      // Form data remains intact, email notification sent by backend
+    });
     razorpay.open();
   };
 
@@ -134,6 +167,53 @@ export default function AccommodationForm({ userId, userName, userEmail }: Accom
     <div className="max-w-4xl mx-auto p-6">
       <div className="bg-white rounded-lg shadow-lg p-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-6">Accommodation Registration</h1>
+
+        {termsModalOpen && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div className="bg-white w-full max-w-2xl rounded-lg shadow-lg p-6 overflow-y-auto max-h-[80vh]">
+              <h2 className="text-xl font-bold mb-4">Terms & Conditions</h2>
+              <div className="prose max-w-none text-sm mb-4 text-gray-700 space-y-3">
+                <p>Please read the following carefully before proceeding:</p>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li>Accommodation is allotted only after successful payment confirmation.</li>
+                  <li>Government issued ID must be presented at check-in; details must match the submitted form.</li>
+                  <li>Check-in and check-out times must be adhered to; late check-out may incur penalties.</li>
+                  <li>Any damage to hostel property will be chargeable to the participant.</li>
+                  <li>Bulk bookings must correctly list gender for each guest; mismatches can lead to cancellation.</li>
+                  <li>No refund after check-in except in force majeure scenarios approved by admins.</li>
+                  <li>Support issues should be raised promptly via the Support section.</li>
+                </ul>
+                <p>By accepting you agree to comply with Shaastra accommodation policies and code of conduct.</p>
+              </div>
+              <div className="flex items-center mb-4">
+                <input
+                  id="accept-terms"
+                  type="checkbox"
+                  className="mr-2"
+                  checked={formData.termsAccepted}
+                  onChange={(e) => setFormData({ ...formData, termsAccepted: e.target.checked })}
+                />
+                <label htmlFor="accept-terms" className="text-sm text-gray-700">I have read and agree to the Terms & Conditions</label>
+              </div>
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!formData.termsAccepted) {
+                      alert('Please accept the terms to continue');
+                      return;
+                    }
+                    setTermsModalOpen(false);
+                  }}
+                  className="bg-blue-600 text-white px-4 py-2 rounded disabled:bg-gray-400"
+                  disabled={!formData.termsAccepted}
+                >
+                  Continue
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -195,21 +275,6 @@ export default function AccommodationForm({ userId, userName, userEmail }: Accom
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
-              <select
-                required
-                value={formData.gender}
-                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">Select Gender</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-
-            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">ID Type</label>
               <select
                 required
@@ -247,6 +312,18 @@ export default function AccommodationForm({ userId, userName, userEmail }: Accom
                 required
                 value={formData.organization}
                 onChange={(e) => setFormData({ ...formData, organization: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Event Name (optional)</label>
+              <input
+                type="text"
+                value={formData.eventName}
+                onChange={(e) => setFormData({ ...formData, eventName: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
@@ -300,27 +377,21 @@ export default function AccommodationForm({ userId, userName, userEmail }: Accom
                 min="1"
                 max="10"
                 value={formData.numberOfPeople}
-                onChange={(e) => setFormData({ ...formData, numberOfPeople: parseInt(e.target.value) })}
+                onChange={(e) => {
+                  const val = Math.max(1, Math.min(10, parseInt(e.target.value) || 1));
+                  const copy = [...formData.guestGenders];
+                  while (copy.length < val) copy.push('');
+                  while (copy.length > val) copy.pop();
+                  setFormData({ ...formData, numberOfPeople: val, guestGenders: copy });
+                }}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Accommodation Type</label>
-            <select
-              required
-              value={formData.accommodationType}
-              onChange={(e) => setFormData({ ...formData, accommodationType: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Select Type</option>
-              <option value="Non-AC">Non-AC (₹300/night/person)</option>
-              <option value="AC">AC (₹500/night/person)</option>
-            </select>
-          </div>
+          {/* Pricing is fixed at ₹300/night/person, AC/Non-AC option removed */}
 
-          {formData.arrivalDate && formData.departureDate && formData.accommodationType && (
+          {formData.arrivalDate && formData.departureDate && (
             <div className="bg-blue-50 p-4 rounded-lg">
               <p className="text-sm font-medium text-gray-700 mb-2">Accommodation Summary</p>
               <p className="text-gray-600">
@@ -334,6 +405,41 @@ export default function AccommodationForm({ userId, userName, userEmail }: Accom
             </div>
           )}
 
+          {/* Guest genders: show after number of people is selected */}
+          {formData.numberOfPeople > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Guest Gender Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {Array.from({ length: formData.numberOfPeople }).map((_, idx) => (
+                  <div key={idx}>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {idx === 0 ? 'Guest 1 (You)' : `Guest ${idx + 1}`}
+                    </label>
+                    <select
+                      required
+                      value={formData.guestGenders[idx] || ''}
+                      onChange={(e) => {
+                        const copy = [...formData.guestGenders];
+                        copy[idx] = e.target.value;
+                        // Update the main gender field with Guest 1's gender
+                        if (idx === 0) {
+                          setFormData({ ...formData, gender: e.target.value, guestGenders: copy });
+                        } else {
+                          setFormData({ ...formData, guestGenders: copy });
+                        }
+                      }}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">Select Gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="flex items-start">
             <input
               type="checkbox"

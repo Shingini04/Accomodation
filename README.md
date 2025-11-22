@@ -1,6 +1,6 @@
 # Shaastra Accommodation Registration Portal
 
-A full-stack accommodation management system built with Express + TypeORM + TypeGraphQL backend and React + TypeScript frontend.
+Full-stack accommodation management system with **separate frontend and backend folders**.
 
 ## Tech Stack
 
@@ -23,8 +23,17 @@ A full-stack accommodation management system built with Express + TypeORM + Type
 ## Project Structure
 
 ```
-project/
-├── backend/                    # Express + TypeORM backend
+project 10/
+├── frontend/                  # React + Vite frontend
+│   ├── src/
+│   │   ├── components/        # React components
+│   │   ├── graphql/           # GraphQL queries/mutations
+│   │   ├── lib/               # Apollo Client setup
+│   │   └── types/             # TypeScript types
+│   ├── package.json
+│   └── .env                   # Frontend config (GraphQL endpoint)
+│
+├── backend/                   # Express + TypeORM backend
 │   ├── src/
 │   │   ├── entities/          # TypeORM entities
 │   │   │   ├── User.ts
@@ -48,30 +57,9 @@ project/
 │   │   └── index.ts           # Server entry point
 │   ├── package.json
 │   ├── tsconfig.json
-│   └── .env.example
+│   └── .env                   # Backend config (DB, API keys)
 │
-├── src/                        # React frontend
-│   ├── components/            # React components
-│   │   ├── AccommodationForm.tsx
-│   │   ├── AdminDashboard.tsx
-│   │   ├── RoomManagement.tsx
-│   │   ├── SupportTicket.tsx
-│   │   ├── ExportData.tsx
-│   │   ├── Navigation.tsx
-│   │   └── Home.tsx
-│   ├── graphql/               # GraphQL queries & mutations
-│   │   ├── queries.ts
-│   │   └── mutations.ts
-│   ├── lib/
-│   │   └── apolloClient.ts    # Apollo Client setup
-│   ├── types/                 # TypeScript types
-│   │   └── index.ts
-│   ├── App.tsx
-│   └── main.tsx
-│
-├── package.json
-├── .env.example
-└── README.md
+└── README.md                  # This file
 ```
 
 ## Features

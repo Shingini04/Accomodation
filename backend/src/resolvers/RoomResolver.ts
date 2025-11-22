@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Arg } from "type-graphql";
+import { Resolver, Query, Mutation, Arg, Ctx } from "type-graphql";
 import { AppDataSource } from "../data-source";
 import { Room } from "../entities/Room";
 import { CreateRoomInput } from "../inputs/RoomInput";
@@ -24,7 +24,10 @@ export class RoomResolver {
   }
 
   @Mutation(() => Room)
-  async createRoom(@Arg("data") data: CreateRoomInput): Promise<Room> {
+  async createRoom(@Arg("data") data: CreateRoomInput, @Ctx() ctx: any): Promise<Room> {
+    if (!ctx?.admin) {
+      throw new Error('Unauthorized: admin access required');
+    }
     const roomRepo = AppDataSource.getRepository(Room);
 
     const existingRoom = await roomRepo.findOne({
@@ -48,7 +51,10 @@ export class RoomResolver {
   }
 
   @Mutation(() => Boolean)
-  async deleteRoom(@Arg("id") id: string): Promise<boolean> {
+  async deleteRoom(@Arg("id") id: string, @Ctx() ctx: any): Promise<boolean> {
+    if (!ctx?.admin) {
+      throw new Error('Unauthorized: admin access required');
+    }
     const roomRepo = AppDataSource.getRepository(Room);
     const room = await roomRepo.findOne({ where: { id }, relations: ["allotments"] });
 

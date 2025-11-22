@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Arg } from "type-graphql";
+import { Resolver, Query, Mutation, Arg, Ctx } from "type-graphql";
 import { AppDataSource } from "../data-source";
 import { SupportTicket } from "../entities/SupportTicket";
 import { CreateSupportTicketInput, RespondToTicketInput } from "../inputs/SupportInput";
@@ -7,15 +7,23 @@ import { sendEmail } from "../services/emailService";
 @Resolver(SupportTicket)
 export class SupportResolver {
   @Query(() => [SupportTicket])
-  async getSupportTickets(): Promise<SupportTicket[]> {
+  async getSupportTickets(@Ctx() ctx: any): Promise<SupportTicket[]> {
+    if (!ctx?.admin) {
+      throw new Error('Unauthorized: admin access required');
+    }
     const ticketRepo = AppDataSource.getRepository(SupportTicket);
-    return await ticketRepo.find({ order: { createdAt: "DESC" } });
+    return await ticketRepo.find({ 
+      order: { createdAt: "DESC" }
+    });
   }
 
   @Query(() => [SupportTicket])
   async getUserSupportTickets(@Arg("userId") userId: string): Promise<SupportTicket[]> {
     const ticketRepo = AppDataSource.getRepository(SupportTicket);
-    return await ticketRepo.find({ where: { userId }, order: { createdAt: "DESC" } });
+    return await ticketRepo.find({ 
+      where: { userId }, 
+      order: { createdAt: "DESC" }
+    });
   }
 
   @Query(() => SupportTicket, { nullable: true })
@@ -28,12 +36,27 @@ export class SupportResolver {
   async createSupportTicket(@Arg("data") data: CreateSupportTicketInput): Promise<SupportTicket> {
     const ticketRepo = AppDataSource.getRepository(SupportTicket);
 
+    // Validate that message is not empty or just whitespace
+    if (!data.message || data.message.trim().length === 0) {
+      throw new Error("Message cannot be empty");
+    }
+
+    // Validate that name is not empty or just whitespace
+    if (!data.name || data.name.trim().length === 0) {
+      throw new Error("Name cannot be empty");
+    }
+
+    // Validate that category is not empty
+    if (!data.category || data.category.trim().length === 0) {
+      throw new Error("Category cannot be empty");
+    }
+
     const ticket = ticketRepo.create({
       userId: data.userId,
-      name: data.name,
-      email: data.email,
-      category: data.category,
-      message: data.message,
+      name: data.name.trim(),
+      email: data.email.trim(),
+      category: data.category.trim(),
+      message: data.message.trim(),
       status: "open",
     });
 

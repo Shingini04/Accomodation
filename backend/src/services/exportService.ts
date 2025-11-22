@@ -1,6 +1,7 @@
 import { Accommodation } from "../entities/Accommodation";
 import { Room } from "../entities/Room";
 import { PaymentTransaction } from "../entities/PaymentTransaction";
+import { SupportTicket } from "../entities/SupportTicket";
 
 export function generateCSV(data: any[], headers: string[]): string {
   const headerRow = headers.join(",");
@@ -22,6 +23,7 @@ export function accommodationsToCSV(accommodations: Accommodation[]): string {
   const headers = [
     "accoId",
     "name",
+    "shaastraId",
     "email",
     "mobile",
     "gender",
@@ -29,7 +31,6 @@ export function accommodationsToCSV(accommodations: Accommodation[]): string {
     "arrivalDate",
     "departureDate",
     "numberOfPeople",
-    "accommodationType",
     "amount",
     "paid",
     "orderId",
@@ -40,6 +41,7 @@ export function accommodationsToCSV(accommodations: Accommodation[]): string {
   const data = accommodations.map(acc => ({
     accoId: acc.accoId,
     name: acc.name,
+    shaastraId: acc.user?.shaastraId || "N/A",
     email: acc.email,
     mobile: acc.mobile,
     gender: acc.gender,
@@ -47,7 +49,6 @@ export function accommodationsToCSV(accommodations: Accommodation[]): string {
     arrivalDate: acc.arrivalDate,
     departureDate: acc.departureDate,
     numberOfPeople: acc.numberOfPeople,
-    accommodationType: acc.accommodationType,
     amount: acc.amount,
     paid: acc.paid ? "Yes" : "No",
     orderId: acc.orderId || "",
@@ -105,6 +106,23 @@ export function paymentsToCSV(payments: PaymentTransaction[]): string {
     status: payment.status,
     method: payment.method || "",
     createdAt: payment.createdAt.toISOString(),
+  }));
+
+  return generateCSV(data, headers);
+}
+
+export function supportTicketsToCSV(tickets: SupportTicket[]): string {
+  const headers = ["id", "userId", "name", "email", "category", "message", "status", "createdAt"];
+
+  const data = tickets.map(t => ({
+    id: t.id,
+    userId: t.userId,
+    name: t.name,
+    email: t.email,
+    category: t.category,
+    message: (t.message || "").replace(/\n/g, " "),
+    status: t.status,
+    createdAt: t.createdAt ? t.createdAt.toISOString() : "",
   }));
 
   return generateCSV(data, headers);
